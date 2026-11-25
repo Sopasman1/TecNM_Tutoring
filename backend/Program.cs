@@ -6,6 +6,7 @@ using Microsoft.IdentityModel.Tokens;
 using TecNM.Api.Core.Entities;
 using TecNM.Api.Data;
 using TecNM.Api.Modules.Auth;
+using TecNM.Api.Modules.Compliance;
 using TecNM.Api.Modules.Health;
 
 const string FrontendCors = "Frontend";
@@ -63,6 +64,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<TecNMDbContext>(options => options.UseNpgsql(connectionString));
 builder.Services.AddDbContext<MainDbContext>(options => options.UseNpgsql(mainConnectionString));
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<ComplianceService>();
 builder.Services.AddScoped<HealthService>();
 builder.Services.AddScoped<PasswordHasher<User>>();
 builder.Services.AddSingleton(jwtSettings);

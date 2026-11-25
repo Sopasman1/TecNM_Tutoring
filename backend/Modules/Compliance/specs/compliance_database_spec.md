@@ -38,6 +38,7 @@ Esta tabla implementa los 10 campos de auditoría inmutable (`Soft Delete`) requ
 | `reporting_month` | `smallint` | `CHECK (1 TO 12)` | Mes calendario al que corresponde el reporte (ej. 2 para Febrero). |
 | `status` | `varchar(16)` | `DEFAULT 'Pending'` | Estado: `Pending`, `OnTime`, `Late`. |
 | `delay_days` | `int` | `DEFAULT 0` | Días de retraso acumulados después del día 10 del mes de entrega. |
+| `form_payload` | `jsonb` | `NOT NULL`, objeto vacío por defecto | Captura estructurada del Plan de Trabajo. |
 | `created_at` | `timestamptz` | `DEFAULT CURRENT_TIMESTAMP` | (Auditoría) Fecha de creación del registro. |
 | `created_by` | `varchar(254)` | `NOT NULL` | (Auditoría) Usuario que creó el registro (Sistema o Docente). |
 | `created_ip` | `varchar(45)` | `NOT NULL` | (Auditoría) IP de origen. |

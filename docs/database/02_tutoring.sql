@@ -36,6 +36,7 @@ CREATE TABLE IF NOT EXISTS tutoring_deliverables (
     reporting_month smallint NOT NULL,
     status varchar(16) NOT NULL DEFAULT 'Pending',
     delay_days integer NOT NULL DEFAULT 0,
+    form_payload jsonb NOT NULL DEFAULT '{}',
     
     -- Campos de Auditoría Inmutable (Estándar TecNM)
     created_at timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,

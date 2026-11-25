@@ -6,9 +6,26 @@ namespace TecNM.Api.Data;
 public sealed class TecNMDbContext(DbContextOptions<TecNMDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users => Set<User>();
+    public DbSet<TutoringDeliverable> Deliverables => Set<TutoringDeliverable>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        var deliverable = modelBuilder.Entity<TutoringDeliverable>();
+        deliverable.ToTable("tutoring_deliverables");
+        deliverable.Property(item => item.Id).HasColumnName("id");
+        deliverable.Property(item => item.TeacherKey).HasColumnName("docente_clave");
+        deliverable.Property(item => item.PeriodId).HasColumnName("periodo_id");
+        deliverable.Property(item => item.ReportType).HasColumnName("report_type");
+        deliverable.Property(item => item.ReportingMonth).HasColumnName("reporting_month");
+        deliverable.Property(item => item.Status).HasColumnName("status");
+        deliverable.Property(item => item.DelayDays).HasColumnName("delay_days");
+        deliverable.Property(item => item.UpdatedAt).HasColumnName("updated_at").ValueGeneratedOnAddOrUpdate();
+        deliverable.Property(item => item.UpdatedBy).HasColumnName("updated_by");
+        deliverable.Property(item => item.UpdatedIp).HasColumnName("updated_ip");
+        deliverable.Property(item => item.FormPayload).HasColumnName("form_payload").HasColumnType("jsonb");
+        deliverable.Property(item => item.Version).IsRowVersion();
+        deliverable.Property(item => item.IsDeleted).HasColumnName("is_deleted");
+
         var user = modelBuilder.Entity<User>();
 
         user.ToTable("users", table =>

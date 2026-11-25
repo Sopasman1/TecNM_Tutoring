@@ -278,9 +278,8 @@ async function loadData(): Promise<void> {
       docenteSummaries.value = res.data
       totalItems.value = res.total
     } else {
-      const clave = resolveDocenteClave(currentUser.value?.username)
       const res = await complianceApi.getDeliverables(
-        clave,
+        'me',
         filters.value.periodoId,
         page.value,
         limit.value,
@@ -289,6 +288,7 @@ async function loadData(): Promise<void> {
           formatKey: filters.value.formatKey,
           status: filters.value.status,
         },
+        resolveDocenteClave(currentUser.value?.username),
       )
       tasks.value = res.data
       totalItems.value = res.total

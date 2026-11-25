@@ -1,3 +1,4 @@
+import { isAxiosError } from 'axios'
 import { http } from '../../../shared/api/http'
 import type {
   ComplianceFilters,
@@ -10,6 +11,13 @@ import type {
   PreviewFormat,
   TemplatePreviewResult,
 } from '../types/compliance'
+
+type DeliverableListItem = Pick<DeliverableTask,
+  'id' | 'docenteClave' | 'periodoId' | 'formatKey' | 'reportingMonth' | 'status' | 'delayDays'> & { updatedAt: string | null }
+
+// Los ID generados por PostgreSQL se atienden exclusivamente en la API.
+const isPersistedTask = (id: string): boolean =>
+  /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)
 
 const MOCK_COMPLIANCE_TASKS_KEY = 'tecnm_compliance_tasks_v3'
 
@@ -207,17 +215,35 @@ export const complianceApi = {
     page = 1,
     limit = 20,
     filters?: Pick<ComplianceFilters, 'month' | 'formatKey' | 'status'>,
+    demoTeacherKey?: string,
   ): Promise<PaginatedResponse<DeliverableTask>> {
     const normalizedClave = resolveDocenteClave(docenteClave)
     try {
-      const { data } = await http.get<PaginatedResponse<DeliverableTask>>(
-        `/compliance/${normalizedClave}/${periodoId}`,
+      const { data } = await http.get<PaginatedResponse<DeliverableListItem>>(
+        `/compliance/${encodeURIComponent(normalizedClave)}/${periodoId}`,
         { params: { page, limit, ...filters } },
       )
-      return data
-    } catch {
+      return {
+        ...data,
+        data: data.data.map((item) => {
+          const format = FORMAT_CATALOG.find((entry) => entry.formatKey === item.formatKey)
+          return {
+            ...item,
+            updatedAt: item.updatedAt ?? undefined,
+            title: format?.title ?? item.formatKey,
+            hasTabs: format?.hasTabs ?? false,
+            tabs: format?.tabs,
+            requiresPhotoEvidence: format?.requiresPhotoEvidence ?? false,
+            prefilledData: {},
+            formPayload: {},
+          }
+        }),
+      }
+    } catch (error) {
+      if (isAxiosError(error) && [400, 401, 403].includes(error.response?.status ?? 0)) throw error
       const periodItems = getMockTasksForPeriod(periodoId)
-      let items = periodItems.filter((d) => d.docenteClave === normalizedClave)
+      const mockKey = demoTeacherKey ?? normalizedClave
+      let items = periodItems.filter((d) => d.docenteClave === mockKey)
       if (items.length === 0) {
         items = periodItems.filter((d) => d.docenteClave === 'D0001')
       }
@@ -296,7 +322,8 @@ export const complianceApi = {
         params: { tabKey },
       })
       return data
-    } catch {
+    } catch (error) {
+      if (isPersistedTask(deliverableId)) throw error
       const store = loadMockStore()
       for (const key of Object.keys(store)) {
         const found = store[key].find((t) => t.id === deliverableId)
@@ -346,7 +373,7 @@ export const complianceApi = {
       return data
     } catch (error: unknown) {
       const status = (error as { response?: { status?: number } })?.response?.status
-      if (status === 409 || status === 413 || status === 415 || status === 422) {
+      if (isPersistedTask(deliverableId) || status === 409 || status === 413 || status === 415 || status === 422) {
         throw error
       }
       const store = loadMockStore()
